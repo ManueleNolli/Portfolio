@@ -20,12 +20,12 @@ type LiqueurProperty = {
     light: string
     medium: string
     strong: string
-  },
+  }
   computeFlavour: (macerationTime: string) => Flavour
 }
 
 type LiqueurPreset = {
-  alcohol: number,
+  alcohol: number
   finalPercentage: number
   sugarContent: number
   macerationTime: string
@@ -104,7 +104,6 @@ export const liqueurs: Liqueur[] = [
             return Flavour.FRESH_AND_DELICATE
         }
       },
-
     },
     preset: {
       alcohol: 150,

@@ -30,10 +30,10 @@ export default function MixologyPage() {
         </div>
 
         <p className="text-primary-600 text-xs text-center mt-4 px-4">
-          This page is intended for informational and educational purposes only. The production of alcohol may be subject to local laws and regulations depending
-          on your country or region. Before attempting any recipe or method described here, please ensure that you are complying with all applicable laws regarding
-          the production, possession, and consumption of alcohol. The authors and maintainers of this content do not assume any responsibility for the use or misuse
-          of this information.
+          This page is intended for informational and educational purposes only. The production of alcohol may be subject to local laws and
+          regulations depending on your country or region. Before attempting any recipe or method described here, please ensure that you are complying
+          with all applicable laws regarding the production, possession, and consumption of alcohol. The authors and maintainers of this content do
+          not assume any responsibility for the use or misuse of this information.
         </p>
       </Section>
     </div>

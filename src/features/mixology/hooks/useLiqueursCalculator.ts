@@ -82,7 +82,10 @@ export default function useLiqueursCalculator({ liqueur }: useLiqueursCalculator
   }
 
   const computeTotalVolume = (alcohol: number, ingredient: number, finalPercentage: number) => {
-    return (alcoholPercentage * (IngredientConstants.MACERATION_PERCENTAGE / 100) * alcohol * alcohol) / (finalPercentage * (alcohol + computeWaterInIngredient(ingredient)))
+    return (
+      (alcoholPercentage * (IngredientConstants.MACERATION_PERCENTAGE / 100) * alcohol * alcohol) /
+      (finalPercentage * (alcohol + computeWaterInIngredient(ingredient)))
+    )
   }
 
   const computeSugar = (totalVolume: number, sugarContent: number) => {
@@ -105,7 +108,10 @@ export default function useLiqueursCalculator({ liqueur }: useLiqueursCalculator
 
     if (ingredientAlcoholRatioPercentage < IngredientConstants.MIN_PER_100ML + (ingredientRange * IntensityThresholdsPercentage.LIGHT) / 100) {
       return Intensity.LIGHT
-    } else if (ingredientAlcoholRatioPercentage < IngredientConstants.MIN_PER_100ML + (ingredientRange * IntensityThresholdsPercentage.MEDIUM) / 100) {
+    } else if (
+      ingredientAlcoholRatioPercentage <
+      IngredientConstants.MIN_PER_100ML + (ingredientRange * IntensityThresholdsPercentage.MEDIUM) / 100
+    ) {
       return Intensity.MEDIUM
     } else {
       return Intensity.STRONG
@@ -147,7 +153,9 @@ export default function useLiqueursCalculator({ liqueur }: useLiqueursCalculator
 
   const [macerationTime, setMacerationTime] = useState<string>(liqueur.preset.macerationTime)
 
-  const [ingredient, setIngredient] = useState<number>(computeIngredient(alcohol, (IngredientConstants.MIN_PER_100ML + IngredientConstants.MAX_PER_100ML) / 2))
+  const [ingredient, setIngredient] = useState<number>(
+    computeIngredient(alcohol, (IngredientConstants.MIN_PER_100ML + IngredientConstants.MAX_PER_100ML) / 2)
+  )
   const [ingredientMetadata, setIngredientMetadata] = useState<MixologyNumberMetadata>(computeIngredientMetadata(alcohol))
 
   const [totalVolume, setTotalVolume] = useState<number>(computeTotalVolume(alcohol, ingredient, finalPercentage))

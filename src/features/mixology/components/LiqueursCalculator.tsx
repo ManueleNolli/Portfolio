@@ -76,7 +76,9 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
   function renderAdvancedSettings(name: string, value: number, unit: string, onChange: (value: number) => void, min?: number, max?: number) {
     return (
       <div className={'w-full flex flex-col items-center  '}>
-        <label htmlFor={name} className="text-primary-600 text-sm font-bold text-left">{name}</label>
+        <label htmlFor={name} className="text-primary-600 text-sm font-bold text-left">
+          {name}
+        </label>
         <div className={'w-full flex items-center justify-center '}>
           <InputNumber label={name} value={value} min={min} max={max} onChange={onChange} additionalStyle={'max-w-[5em] min-w-[5em]  '} />
           <span className="text-primary-600 text-sm font-bold ml-1 text-left min-w-[3rem]">{unit}</span>
@@ -145,13 +147,24 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
             max={castValue(ingredientMetadata.max, ingredientMetadata.step)}
             step={ingredientMetadata.step}
           />
-          <RadioGroup<string> label={'Maceration Time'} value={macerationTime} options={macerationTimeOptions} onChange={handleMacerationTimeChange} />
+          <RadioGroup<string>
+            label={'Maceration Time'}
+            value={macerationTime}
+            options={macerationTimeOptions}
+            onChange={handleMacerationTimeChange}
+          />
         </div>
         <div className="order-3 md:order-2 flex-grow-[1] basis-0 h-full ">
           <BottleImage
             max={computeTotalVolume(alcoholMetadata.max, ingredientMetadata.min, finalPercentageMetadata.min)}
             value={castValue(totalVolume, 1)}
-            ingredientColor={intensity === Intensity.LIGHT ? liqueur.property.colors.light : intensity === Intensity.MEDIUM ? liqueur.property.colors.medium : liqueur.property.colors.strong}
+            ingredientColor={
+              intensity === Intensity.LIGHT
+                ? liqueur.property.colors.light
+                : intensity === Intensity.MEDIUM
+                  ? liqueur.property.colors.medium
+                  : liqueur.property.colors.strong
+            }
             sugarContentPercentage={castValue(sugarContent, sugarContentMetadata.step) / maxSugarContent}
             macerationPercentage={(macerationTimeOptions.indexOf(macerationTime) + 1) / macerationTimeOptions.length}
           />
@@ -172,7 +185,14 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
               <RadioGroup<string> label={'Step'} value={step.label} options={stepOptions.map((s) => s.label)} onChange={handleStepChange} />
               {renderAdvancedSettings('Max Alcohol', maxAlcohol, 'ml', handleMaxAlcoholChange, alcoholMetadata.min)}
               {renderAdvancedSettings('Max Sugar Content', maxSugarContent, 'g/L', handleMaxSugarContentChange, sugarContentMetadata.min)}
-              {renderAdvancedSettings('Alcohol Percentage', alcoholPercentage, '%', handleAlcoholPercentageChange, AlcoholConstants.MIN_ALCOHOL_PERCENTAGE, AlcoholConstants.MAX_ALCOHOL_PERCENTAGE)}
+              {renderAdvancedSettings(
+                'Alcohol Percentage',
+                alcoholPercentage,
+                '%',
+                handleAlcoholPercentageChange,
+                AlcoholConstants.MIN_ALCOHOL_PERCENTAGE,
+                AlcoholConstants.MAX_ALCOHOL_PERCENTAGE
+              )}
             </div>
           </ToggleableContent>
         </div>
@@ -185,23 +205,43 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
                 sterilize by boiling them in water for 20 minutes, this prevents contamination and improves shelf life.
               </p>
 
-              {renderRecipeStep(1, '🌿 Prepare the Ingredient', `Weigh out ${ingredient} g of ${liqueur.property.partToBeMacerated}. Cut them if needed to maximize surface area.`)}
+              {renderRecipeStep(
+                1,
+                '🌿 Prepare the Ingredient',
+                `Weigh out ${ingredient} g of ${liqueur.property.partToBeMacerated}. Cut them if needed to maximize surface area.`
+              )}
               {renderRecipeStep(
                 2,
                 '🧪 Add Alcohol',
-                `Pour ${castValue(alcohol, alcoholMetadata.step)} mL of alcohol at ${alcoholPercentage}% ABV into a clean, sterilized jar. Add the prepared ingredient and seal the jar tightly.`,
+                `Pour ${castValue(alcohol, alcoholMetadata.step)} mL of alcohol at ${alcoholPercentage}% ABV into a clean, sterilized jar. Add the prepared ingredient and seal the jar tightly.`
               )}
-              {renderRecipeStep(3, '⌛ Macerate', `Place the jar in a cool, dark place for ${macerationTime}. Shake it gently sometimes to help the extraction process.`)}
-              {renderRecipeStep(4, '🫙 Filter the Infusion', 'Strain the mixture using a fine filter, cheesecloth, or coffee filter. Repeat filtration if necessary for clarity.')}
-              {renderRecipeStep(5, '🍯 Add Sugar and Water', `Gently heat ${castValue(sugar, step.value)} g of sugar in ${castValue(water, step.value)} mL of water in a saucepan until dissolved. Let it cool.`)}
-              {renderRecipeStep(6, '🏷️ Bottle and Rest', 'Transfer the liqueur into a clean bottle. Label it with the date and ingredients. Let it rest for 1 week (or more) in a cool place to allow the flavors to blend and stabilize.')}
+              {renderRecipeStep(
+                3,
+                '⌛ Macerate',
+                `Place the jar in a cool, dark place for ${macerationTime}. Shake it gently sometimes to help the extraction process.`
+              )}
+              {renderRecipeStep(
+                4,
+                '🫙 Filter the Infusion',
+                'Strain the mixture using a fine filter, cheesecloth, or coffee filter. Repeat filtration if necessary for clarity.'
+              )}
+              {renderRecipeStep(
+                5,
+                '🍯 Add Sugar and Water',
+                `Gently heat ${castValue(sugar, step.value)} g of sugar in ${castValue(water, step.value)} mL of water in a saucepan until dissolved. Let it cool.`
+              )}
+              {renderRecipeStep(
+                6,
+                '🏷️ Bottle and Rest',
+                'Transfer the liqueur into a clean bottle. Label it with the date and ingredients. Let it rest for 1 week (or more) in a cool place to allow the flavors to blend and stabilize.'
+              )}
               {renderRecipeStep(
                 7,
                 '📋 Final Stats (Estimated)',
                 `
               You will have approximately ${castValue(totalVolume, step.value)} mL of liqueur with an alcohol content of ${castValue(finalPercentage, finalPercentageMetadata.step)}% ABV and a sugar content of ${castValue(sugarContent, sugarContentMetadata.step)} g/L.
               The intensity is ${intensity} and the flavour is ${flavour}.
-              `,
+              `
               )}
             </div>
           </ToggleableContent>
@@ -276,7 +316,12 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
 
                 <Formula label="Alcohol By Volume" symbol="f" latex="f = \frac{mV \cdot mA\%}{t}" symbolVerification="\frac{ml \cdot \%}{ml} = \%" />
 
-                <Formula label="Sugar Content" symbol="sC" latex={`sC = \\frac{s}{t} \\cdot 1000`} symbolVerification="\frac{g}{ml} \cdot 1000 = g/L" />
+                <Formula
+                  label="Sugar Content"
+                  symbol="sC"
+                  latex={`sC = \\frac{s}{t} \\cdot 1000`}
+                  symbolVerification="\frac{g}{ml} \cdot 1000 = g/L"
+                />
 
                 <Formula
                   label={'Flavour'}
@@ -300,7 +345,9 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
                   symbolVerification="\text{Light | Medium | Strong}"
                 />
 
-                <p className={'text-primary-600 text-sm font-bold italic'}>Solving the equations above from specific values, it results in the following values:</p>
+                <p className={'text-primary-600 text-sm font-bold italic'}>
+                  Solving the equations above from specific values, it results in the following values:
+                </p>
 
                 <Formula
                   label={'Total Volume'}
@@ -318,8 +365,8 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
               </div>
 
               <p className={'text-primary-600 text-sm font-bold italic mt-4'}>
-                The liqueur graph below illustrates the relationships between the components of the liqueur. It shows how the values of the liqueur are
-                interconnected and how they affect each other.
+                The liqueur graph below illustrates the relationships between the components of the liqueur. It shows how the values of the liqueur
+                are interconnected and how they affect each other.
               </p>
               <LiqueurGraph partToBeMacerated={liqueur.property.partToBeMacerated} />
             </div>

@@ -19,7 +19,9 @@ export default function Slider({ label, unit, value, onChange, min, max, step }:
 
   return (
     <div className="flex flex-col w-full ">
-      <label htmlFor={label} className="text-primary-600 text-sm font-bold text-center">{label}</label>
+      <label htmlFor={label} className="text-primary-600 text-sm font-bold text-center">
+        {label}
+      </label>
       <div className="flex w-full items-center ">
         <SliderPrimeReact
           value={value}

@@ -12,7 +12,11 @@ export default function Hero() {
         <RotatingText className="md:text-4xl text-2xl text-primary-600" items={profile.jobs} />
       </div>
       <a href="#aboutme">
-        <Image src="/assets/arrow.png" alt="Scroll down" imageClassName="md:w-16 w-8 absolute animate-bounce bottom-10 mr-auto ml-auto left-0 right-0" />
+        <Image
+          src="/assets/arrow.png"
+          alt="Scroll down"
+          imageClassName="md:w-16 w-8 absolute animate-bounce bottom-10 mr-auto ml-auto left-0 right-0"
+        />
       </a>
     </div>
   )

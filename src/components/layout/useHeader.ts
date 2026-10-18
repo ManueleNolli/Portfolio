@@ -65,7 +65,7 @@ export default function useHeader() {
           prevMenuList.map((menu) => ({
             ...menu,
             isCurrent: menu.url === currentSection,
-          })),
+          }))
         )
       }
     }
