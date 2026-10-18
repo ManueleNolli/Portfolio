@@ -10,7 +10,6 @@ This is a full rewrite of the former [PersonalWebsite](https://github.com/Manuel
 - [tsparticles](https://particles.js.org/): Particles animation
 - [gsap](https://gsap.com/): Animation library
 - [AOS](https://michalsnik.github.io/aos/): Animate on scroll library
-- [Octokit](https://github.com/octokit): GitHub API client via GraphQL
 - [react-error-boundary](https://github.com/bvaughn/react-error-boundary): client-side error boundary
 
 ## Requirements
@@ -22,27 +21,46 @@ This is a full rewrite of the former [PersonalWebsite](https://github.com/Manuel
 
 ```bash
 yarn install
-```
-
-```bash
 yarn dev
 ```
+
+| Script                              | Purpose                      |
+| ----------------------------------- | ---------------------------- |
+| `yarn dev`                          | Vite dev server              |
+| `yarn build`                        | Type check and build `dist/` |
+| `yarn preview`                      | Serve the built `dist/`      |
+| `yarn typecheck`                    | TypeScript only              |
+| `yarn lint`                         | ESLint                       |
+| `yarn format` / `yarn format:check` | Prettier                     |
+| `yarn test` / `yarn test:watch`     | Vitest unit tests            |
 
 ## Folder Structure
 
 ```bash
-src/ # All source code
-    main.tsx # Provider stack (PrimeReact, Particles, AOS), router, error boundary
-    App.tsx # Routes
-    pages/ # One folder per route
-    components/ # Shared components
-    constants/ # Static content/config
-    providers/ # Context providers
-    context/ # React contexts
+src/
+    main.tsx # Provider stack (PrimeReact, Particles, AOS) and router
+    config.ts # App settings (API paths, mail addresses, page sizes, breakpoint)
+    app/ # Routes, Layout route (header, error boundary, scroll reset), AOS provider
+    components/ # Generic building blocks, unaware of the site content
+        ui/ # Section, Divider, Dialog, Slider, InputNumber, RadioGroup, ...
+        animation/ # AnimatedText, RotatingText, AnimatedOnScroll
+        layout/ # Header
+    features/ # One folder per domain, owning its components, hooks, data and logic
+        home/ # Hero, About Me
+        journey/ # Vertical and horizontal timelines
+        projects/ # Certifications, GitHub repositories
+        contact/ # Contact form, links, attributions
+        hobbies/ # Hobbies intro and teaser
+        mixology/ # Liqueurs calculator: components/, hooks/, data/, lib/ (pure math, unit tested)
+        particles/ # tsParticles provider, components and presets
+    data/ # Personal content (profile.ts) and its types
+    pages/ # Route components, composing feature sections
     styles/ # Global CSS
 public/ # static assets
     assets/ # images, icons, etc.
 ```
+
+Imports use the `@/` alias for `src/`. Tests live next to the code they cover (`*.test.ts`).
 
 ## Deployment
 
@@ -68,8 +86,7 @@ The CI/CD pipeline is implemented using GitHub Actions, the workflow is defined 
 
 Steps:
 
-1. **Tests**: placeholder for now.
-2. **Build**: `vite build` → static `dist/`.
-3. **Deploy**: sync `dist/` to the S3 assets bucket, then invalidate the CloudFront cache.
+1. **Build**: lint (no warnings allowed), Prettier check, unit tests, then `yarn build` → static `dist/`.
+2. **Deploy** (`main` only): sync `dist/` to the S3 assets bucket, then invalidate the CloudFront cache.
 
 No Lambda zipping/layer steps — there's no server to deploy for this app anymore.
