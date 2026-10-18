@@ -39,7 +39,7 @@ function RepositoryCard({ repo }: { repo: Repository }) {
           window.open(repo.ownerUrl, '_blank')
         }}
         text
-        className="p-0 m-2 hover:text-primary-750 no-outline hover:bg-transparent text-primary-600 text-left"
+        className="p-0 m-2 hover:text-primary-750 hover:bg-transparent text-primary-600 text-left"
       />
       <div className="m-2 text-gray-500 grow">{repo.description}</div>
       <div className="m-2 text-gray-500">{formatDate(repo.updatedAt)}</div>

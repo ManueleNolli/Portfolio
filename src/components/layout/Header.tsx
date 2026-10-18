@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'
 import { Divide as Hamburger } from 'hamburger-react'
 import useHeader, { MenuLabel } from '@/components/layout/useHeader'
 import { profile } from '@/data/profile'
+import { scrollToSection } from '@/lib/scrollToSection'
 
 const BAR_CLASS = 'h-[8%] fixed top-0 left-0 right-0 z-10'
 const BLUR_CLASS = 'bg-primary-50/50 backdrop-blur-md'
@@ -13,7 +13,7 @@ function HomeTitle() {
   return (
     <div
       className="w-full text-primary-650 hover:text-primary-750 text-2xl font-bold leading-relaxed font-mono text-center content-center cursor-pointer"
-      onClick={() => window.scrollTo({ top: 0 })}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
     >
       {profile.name}
     </div>
@@ -29,19 +29,16 @@ function BackIcon() {
 }
 
 function NavButtons({ menuList, onNavigate }: { menuList: MenuLabel[]; onNavigate?: () => void }) {
-  const navigate = useNavigate()
-
   return menuList.map((menu) => (
     <Button
       key={menu.url}
       label={menu.label}
       onClick={() => {
         onNavigate?.()
-        // through the router, not location.href: a native hash change has no history key and ScrollRestoration would undo its scroll
-        navigate({ hash: menu.url })
+        scrollToSection(menu.url.slice(1))
       }}
       text
-      className={`hover:text-primary-750 text-lg no-outline hover:bg-transparent font-mono ${menu.isCurrent ? 'text-primary-850 font-bold' : 'text-primary-600'}`}
+      className={`hover:text-primary-750 text-lg hover:bg-transparent font-mono ${menu.isCurrent ? 'text-primary-850 font-bold' : 'text-primary-600'}`}
     />
   ))
 }

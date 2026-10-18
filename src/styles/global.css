@@ -25,3 +25,8 @@ html,
 body {
   @apply no-scrollbar;
 } /* Remove scrollbar */
+
+/* PrimeReact draws its focus ring on :focus, so it stays after a mouse click or a tap. Keep it for keyboard users only */
+.p-button:focus:not(:focus-visible) {
+  box-shadow: none;
+}

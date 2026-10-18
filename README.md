@@ -54,6 +54,7 @@ src/
         mixology/ # Liqueurs calculator: components/, hooks/, data/, lib/ (pure math, unit tested)
         particles/ # tsParticles provider, components and presets
     data/ # Personal content (profile.ts) and its types
+    lib/ # Framework-free helpers shared across features
     pages/ # Route components, composing feature sections
     styles/ # Global CSS
 public/ # static assets
