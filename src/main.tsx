@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { PrimeReactProvider } from 'primereact/api'
 
 // global.css first: it declares the cascade layer order (tailwind-base < primereact < tailwind-utilities).
@@ -10,16 +10,14 @@ import 'primereact/resources/themes/lara-light-cyan/theme.css'
 
 import ParticlesProvider from '@/features/particles/ParticlesProvider'
 import AOSProvider from '@/app/AOSProvider'
-import App from '@/app/App'
+import { router } from '@/app/router'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <PrimeReactProvider>
       <ParticlesProvider>
         <AOSProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <RouterProvider router={router} />
         </AOSProvider>
       </ParticlesProvider>
     </PrimeReactProvider>
