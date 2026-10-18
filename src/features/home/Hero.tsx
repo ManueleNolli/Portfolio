@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Image } from 'primereact/image'
 import AnimatedText from '@/components/animation/AnimatedText'
 import RotatingText from '@/components/animation/RotatingText'
@@ -11,13 +12,13 @@ export default function Hero() {
         <AnimatedText className="font-bold leading-relaxed md:text-6xl text-4xl text-primary-650">{profile.name}</AnimatedText>
         <RotatingText className="md:text-4xl text-2xl text-primary-600" items={profile.jobs} />
       </div>
-      <a href="#aboutme">
+      <Link to="#aboutme">
         <Image
           src="/assets/arrow.png"
           alt="Scroll down"
           imageClassName="md:w-16 w-8 absolute animate-bounce bottom-10 mr-auto ml-auto left-0 right-0"
         />
-      </a>
+      </Link>
     </div>
   )
 }

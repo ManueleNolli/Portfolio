@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'
 import { Divide as Hamburger } from 'hamburger-react'
 import useHeader, { MenuLabel } from '@/components/layout/useHeader'
@@ -28,13 +29,16 @@ function BackIcon() {
 }
 
 function NavButtons({ menuList, onNavigate }: { menuList: MenuLabel[]; onNavigate?: () => void }) {
+  const navigate = useNavigate()
+
   return menuList.map((menu) => (
     <Button
       key={menu.url}
       label={menu.label}
       onClick={() => {
         onNavigate?.()
-        window.location.href = menu.url
+        // through the router, not location.href: a native hash change has no history key and ScrollRestoration would undo its scroll
+        navigate({ hash: menu.url })
       }}
       text
       className={`hover:text-primary-750 text-lg no-outline hover:bg-transparent font-mono ${menu.isCurrent ? 'text-primary-850 font-bold' : 'text-primary-600'}`}
