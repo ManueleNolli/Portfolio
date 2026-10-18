@@ -1,3 +1,6 @@
+// max viewport width treated as mobile, matches the Tailwind md breakpoint (768px)
+export const MOBILE_MAX_WIDTH = 768
+
 // app behaviour settings; personal content lives in data/profile.ts
 export const config = {
   // 'horizontal' = pinned horizontal scroll on desktop (mobile always uses the vertical timeline), 'vertical' = vertical everywhere

@@ -1,12 +1,12 @@
 import React, { useContext } from 'react'
 import Particles from '@tsparticles/react'
+import type { ISourceOptions } from '@tsparticles/engine'
 import './particles.css'
 import { ParticlesContext } from '@/features/particles/particlesContext'
 
 export type ParticlesBackgroundProps = {
   children: React.ReactNode
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  options: any
+  options: ISourceOptions
   id: string
 }
 

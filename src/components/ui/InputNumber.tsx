@@ -11,6 +11,15 @@ type InputNumberProps = {
   additionalStyle?: string
 }
 
+// null when the value is inside the optional [min, max] range
+function rangeError(value: number, min?: number, max?: number): string | null {
+  const isTooSmall = min !== undefined && value < min
+  const isTooLarge = max !== undefined && value > max
+  if (!isTooSmall && !isTooLarge) return null
+  if (min !== undefined && max !== undefined) return `🚨 Oh no! The value must be between ${min} and ${max}`
+  return isTooSmall ? `🚨 Oh no! The value must be at least ${min}` : `🚨 Oh no! The value must be at most ${max}`
+}
+
 export default function InputNumber({ label, value, min, max, step, onChange, additionalStyle }: InputNumberProps) {
   const toast = useRef<Toast | null>(null)
 
@@ -20,51 +29,25 @@ export default function InputNumber({ label, value, min, max, step, onChange, ad
     setInputValue(value.toString())
   }, [value])
 
+  // valid values are propagated while typing, invalid ones are reported (and reverted) on blur
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value
-    const newValue = parseFloat(inputValue)
-    setInputValue(inputValue)
-
-    if (isNaN(newValue)) return
-
-    const isTooSmall = min !== undefined && max === undefined && newValue < min
-    const isTooLarge = max !== undefined && min === undefined && newValue > max
-    const isOutOfRange = min !== undefined && max !== undefined && (newValue < min || newValue > max)
-
-    if (isTooSmall || isTooLarge || isOutOfRange) return
-
-    onChange(newValue)
+    setInputValue(e.target.value)
+    const newValue = parseFloat(e.target.value)
+    if (!isNaN(newValue) && !rangeError(newValue, min, max)) onChange(newValue)
   }
 
   const handleInputBlur = () => {
     const newValue = parseFloat(inputValue)
     if (isNaN(newValue)) return
 
-    let errorMessage: string | null = null
-
-    const isTooSmall = min !== undefined && max === undefined && newValue < min
-    const isTooLarge = max !== undefined && min === undefined && newValue > max
-    const isOutOfRange = min !== undefined && max !== undefined && (newValue < min || newValue > max)
-
-    if (isTooSmall) {
-      errorMessage = `🚨 Oh no! The value must be at least ${min}`
-    } else if (isTooLarge) {
-      errorMessage = `🚨 Oh no! The value must be at most ${max}`
-    } else if (isOutOfRange) {
-      errorMessage = `🚨 Oh no! The value must be between ${min} and ${max}`
-    } else {
+    const errorMessage = rangeError(newValue, min, max)
+    if (!errorMessage) {
       onChange(newValue)
+      return
     }
 
-    if (errorMessage) {
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Invalid input',
-        detail: errorMessage,
-        life: 3000,
-      })
-      setInputValue(value.toString())
-    }
+    toast.current?.show({ severity: 'error', summary: 'Invalid input', detail: errorMessage, life: 3000 })
+    setInputValue(value.toString())
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

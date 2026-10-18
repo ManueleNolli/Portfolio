@@ -1,12 +1,7 @@
 import Slider from '@/components/ui/Slider'
 import RadioGroup from '@/components/ui/RadioGroup'
-import useLiqueursCalculator, {
-  AlcoholConstants,
-  Intensity,
-  intensityOptions,
-  IntensityThresholdsPercentage,
-  stepOptions,
-} from '@/features/mixology/hooks/useLiqueursCalculator'
+import useLiqueursCalculator, { NumberMetadata, stepOptions } from '@/features/mixology/hooks/useLiqueursCalculator'
+import { AlcoholConstants, computeFlavour, Intensity, intensityColor, IntensityThresholdsPercentage } from '@/features/mixology/lib/liqueurMath'
 import { Flavour, Liqueur } from '@/features/mixology/data/liqueurs'
 import ToggleableContent from '@/components/ui/ToggleableContent'
 import InputNumber from '@/components/ui/InputNumber'
@@ -26,7 +21,9 @@ type LiqueursCalculatorProps = {
   liqueur: Liqueur
 }
 
-const flavourOptions = Object.values(Flavour).map((value) => value as Flavour)
+const flavourOptions = Object.values(Flavour)
+const intensityOptions = Object.values(Intensity)
+const LABEL_CLASS = 'text-primary-600 text-sm font-bold'
 
 export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps) {
   const {
@@ -58,13 +55,27 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
     handleAlcoholPercentageChange,
     maxSugarContent,
     handleMaxSugarContentChange,
-    computeTotalVolume,
+    maxTotalVolume,
   } = useLiqueursCalculator({ liqueur })
+
+  function renderSlider(label: string, unit: string, value: number, metadata: NumberMetadata, onChange: (value: number) => void) {
+    return (
+      <Slider
+        label={label}
+        unit={unit}
+        value={castValue(value, metadata.step)}
+        onChange={onChange}
+        min={castValue(metadata.min, metadata.step)}
+        max={castValue(metadata.max, metadata.step)}
+        step={metadata.step}
+      />
+    )
+  }
 
   function renderDependentValue(name: string, unit: string, value: number, step: number, details?: string) {
     return (
       <div className="flex flex-col w-full justify-center items-center ">
-        <label className="text-primary-600 text-sm font-bold text-center">{name}</label>
+        <label className={`${LABEL_CLASS} text-center`}>{name}</label>
         {details && <p className="text-xs text-primary-300">{details}</p>}
         <span>
           {castValue(value, step)} {unit}
@@ -76,12 +87,12 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
   function renderAdvancedSettings(name: string, value: number, unit: string, onChange: (value: number) => void, min?: number, max?: number) {
     return (
       <div className={'w-full flex flex-col items-center  '}>
-        <label htmlFor={name} className="text-primary-600 text-sm font-bold text-left">
+        <label htmlFor={name} className={`${LABEL_CLASS} text-left`}>
           {name}
         </label>
         <div className={'w-full flex items-center justify-center '}>
           <InputNumber label={name} value={value} min={min} max={max} onChange={onChange} additionalStyle={'max-w-[5em] min-w-[5em]  '} />
-          <span className="text-primary-600 text-sm font-bold ml-1 text-left min-w-[3rem]">{unit}</span>
+          <span className={`${LABEL_CLASS} ml-1 text-left min-w-[3rem]`}>{unit}</span>
         </div>
       </div>
     )
@@ -109,44 +120,10 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
     <div className="w-full flex flex-col gap-4">
       <div className="w-full  flex md:flex-row flex-col gap-4 p-4">
         <div className="order-1 md:order-1 flex-grow-[2] basis-0 h-full space-y-8">
-          <Slider
-            label={`Alcohol ${alcoholPercentage}%`}
-            unit={'mL'}
-            value={castValue(alcohol, alcoholMetadata.step)}
-            onChange={handleAlcoholChange}
-            min={castValue(alcoholMetadata.min, alcoholMetadata.step)}
-            max={castValue(alcoholMetadata.max, alcoholMetadata.step)}
-            step={alcoholMetadata.step}
-          />
-          <Slider
-            label="Alcohol by Volume"
-            unit={'%'}
-            value={castValue(finalPercentage, finalPercentageMetadata.step)}
-            onChange={handleFinalPercentageChange}
-            min={castValue(finalPercentageMetadata.min, finalPercentageMetadata.step)}
-            max={castValue(finalPercentageMetadata.max, finalPercentageMetadata.step)}
-            step={finalPercentageMetadata.step}
-          />
-
-          <Slider
-            label="Sugar content"
-            unit={'g/L'}
-            value={castValue(sugarContent, sugarContentMetadata.step)}
-            onChange={handleSugarContentChange}
-            min={castValue(sugarContentMetadata.min, sugarContentMetadata.step)}
-            max={castValue(sugarContentMetadata.max, sugarContentMetadata.step)}
-            step={sugarContentMetadata.step}
-          />
-
-          <Slider
-            label={liqueur.property.partToBeMacerated}
-            unit={'g'}
-            value={castValue(ingredient, ingredientMetadata.step)}
-            onChange={handleIngredientChange}
-            min={castValue(ingredientMetadata.min, ingredientMetadata.step)}
-            max={castValue(ingredientMetadata.max, ingredientMetadata.step)}
-            step={ingredientMetadata.step}
-          />
+          {renderSlider(`Alcohol ${alcoholPercentage}%`, 'mL', alcohol, alcoholMetadata, handleAlcoholChange)}
+          {renderSlider('Alcohol by Volume', '%', finalPercentage, finalPercentageMetadata, handleFinalPercentageChange)}
+          {renderSlider('Sugar content', 'g/L', sugarContent, sugarContentMetadata, handleSugarContentChange)}
+          {renderSlider(liqueur.property.partToBeMacerated, 'g', ingredient, ingredientMetadata, handleIngredientChange)}
           <RadioGroup<string>
             label={'Maceration Time'}
             value={macerationTime}
@@ -156,15 +133,9 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
         </div>
         <div className="order-3 md:order-2 flex-grow-[1] basis-0 h-full ">
           <BottleImage
-            max={computeTotalVolume(alcoholMetadata.max, ingredientMetadata.min, finalPercentageMetadata.min)}
+            max={maxTotalVolume}
             value={castValue(totalVolume, 1)}
-            ingredientColor={
-              intensity === Intensity.LIGHT
-                ? liqueur.property.colors.light
-                : intensity === Intensity.MEDIUM
-                  ? liqueur.property.colors.medium
-                  : liqueur.property.colors.strong
-            }
+            ingredientColor={intensityColor(liqueur.property, intensity)}
             sugarContentPercentage={castValue(sugarContent, sugarContentMetadata.step) / maxSugarContent}
             macerationPercentage={(macerationTimeOptions.indexOf(macerationTime) + 1) / macerationTimeOptions.length}
           />
@@ -327,7 +298,7 @@ export default function LiqueursCalculator({ liqueur }: LiqueursCalculatorProps)
                   label={'Flavour'}
                   symbol="fl"
                   latex={`fl(mT) = \\begin{cases}
-                  ${macerationTimeOptions.map((option) => `\\text{${liqueur.property.computeFlavour(option)}} & \\text{if } mT = \\text{${option}}`).join(' \\\\ ')}
+                  ${macerationTimeOptions.map((option) => `\\text{${computeFlavour(liqueur.property, option)}} & \\text{if } mT = \\text{${option}}`).join(' \\\\ ')}
                   \\end{cases}`}
                   symbolVerification={`\\text{Fresh and delicate} \\mid \\text{Balanced} \\mid \\text{Rich and full}`}
                 />

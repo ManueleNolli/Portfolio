@@ -2,56 +2,37 @@ import { FloatLabel } from 'primereact/floatlabel'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { Button } from 'primereact/button'
-import useContactForm from '@/features/contact/useContactForm'
 import { Toast } from 'primereact/toast'
+import useContactForm, { FieldName } from '@/features/contact/useContactForm'
+
+const fields: { name: FieldName; label: string; multiline?: boolean }[] = [
+  { name: 'name', label: 'Name' },
+  { name: 'email', label: 'Email' },
+  { name: 'subject', label: 'Subject' },
+  { name: 'message', label: 'Message', multiline: true },
+]
 
 export default function ContactForm() {
-  const {
-    toast,
-    name,
-    updateName,
-    email,
-    updateEmail,
-    subject,
-    updateSubject,
-    message,
-    updateMessage,
-    isNameValidAndButtonEnabled,
-    isEmailValidAndButtonEnabled,
-    isSubjectValidAndButtonEnabled,
-    isMessageValidAndButtonEnabled,
-    isFormValid,
-    onFormSubmit,
-    isLoading,
-  } = useContactForm()
+  const { toast, values, onChange, showInvalid, isFormValid, onFormSubmit, isLoading } = useContactForm()
 
   return (
     <div className="space-y-8 pt-5 md:pt-2">
       <Toast ref={toast} />
-      <FloatLabel>
-        <InputText id="name" className="w-full" value={name} onChange={updateName} invalid={!isNameValidAndButtonEnabled} />
-        <label htmlFor="name">Name</label>
-      </FloatLabel>
+      {fields.map(({ name, label, multiline }) => {
+        const inputProps = { id: name, className: 'w-full', value: values[name], onChange: onChange(name), invalid: showInvalid(name) }
 
-      <FloatLabel>
-        <InputText id="email" className="w-full" value={email} onChange={updateEmail} invalid={!isEmailValidAndButtonEnabled} />
-        <label htmlFor="email">Email</label>
-      </FloatLabel>
-
-      <FloatLabel>
-        <InputText id="subject" className="w-full" value={subject} onChange={updateSubject} invalid={!isSubjectValidAndButtonEnabled} />
-        <label htmlFor="subject">Subject</label>
-      </FloatLabel>
-
-      <FloatLabel>
-        <InputTextarea id="message" rows={6} className="w-full " value={message} onChange={updateMessage} invalid={!isMessageValidAndButtonEnabled} />
-        <label htmlFor="message">Message</label>
-      </FloatLabel>
+        return (
+          <FloatLabel key={name}>
+            {multiline ? <InputTextarea rows={6} {...inputProps} /> : <InputText {...inputProps} />}
+            <label htmlFor={name}>{label}</label>
+          </FloatLabel>
+        )
+      })}
 
       <Button
         className="text-white bg-primary-600 hover:bg-primary-700 border-primary-600 rounded-md text-lg px-4 py-3 w-full !mt-6"
         size="large"
-        disabled={!isFormValid()}
+        disabled={!isFormValid}
         onClick={onFormSubmit}
         loading={isLoading}
       >

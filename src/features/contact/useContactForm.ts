@@ -2,101 +2,60 @@ import React, { useRef, useState } from 'react'
 import { Toast } from 'primereact/toast'
 import { config } from '@/config'
 
+export type FieldName = 'name' | 'email' | 'subject' | 'message'
+
+const EMAIL_REGEX = /^[\w._-]+[+]?[\w._-]+@[\w.-]+\.[a-zA-Z]{2,6}$/
+const isNotEmpty = (value: string) => value.length > 0
+
+const validators: Record<FieldName, (value: string) => boolean> = {
+  name: isNotEmpty,
+  email: (value) => EMAIL_REGEX.test(value),
+  subject: isNotEmpty,
+  message: isNotEmpty,
+}
+
+const emptyValues: Record<FieldName, string> = { name: '', email: '', subject: '', message: '' }
+
 export default function useContactForm() {
-  const { to: contact_mail, from: sender_mail } = config.mail
   const toast = useRef<Toast>(null)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [subject, setSubject] = useState('')
-  const [message, setMessage] = useState('')
-  const [isNameValid, setIsNameValid] = useState(false)
-  const [isEmailValid, setIsEmailValid] = useState(false)
-  const [isSubjectValid, setIsSubjectValid] = useState(false)
-  const [isMessageValid, setIsMessageValid] = useState(false)
-  const [isFormEnabled, setIsFormEnabled] = useState(false) // To manage first time form validation
+  const [values, setValues] = useState(emptyValues)
+  // fields are not flagged as invalid before the user starts typing
+  const [isTouched, setIsTouched] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const isNameValidAndButtonEnabled = isFormEnabled ? isNameValid : true
-  const isEmailValidAndButtonEnabled = isFormEnabled ? isEmailValid : true
-  const isSubjectValidAndButtonEnabled = isFormEnabled ? isSubjectValid : true
-  const isMessageValidAndButtonEnabled = isFormEnabled ? isMessageValid : true
+  const isValid = (field: FieldName) => validators[field](values[field])
+  const showInvalid = (field: FieldName) => isTouched && !isValid(field)
+  const isFormValid = isTouched && (Object.keys(validators) as FieldName[]).every(isValid)
 
-  const updateName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value)
-    setIsNameValid(event.target.value.length > 0)
-    setIsFormEnabled(true)
-  }
-
-  const updateEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value)
-    const emailRegex = new RegExp(/^[\w._-]+[+]?[\w._-]+@[\w.-]+\.[a-zA-Z]{2,6}$/)
-    setIsEmailValid(emailRegex.test(event.target.value))
-    setIsFormEnabled(true)
-  }
-
-  const updateSubject = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSubject(event.target.value)
-    setIsSubjectValid(event.target.value.length > 0)
-    setIsFormEnabled(true)
-  }
-
-  const updateMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(event.target.value)
-    setIsMessageValid(event.target.value.length > 0)
-    setIsFormEnabled(true)
-  }
-
-  const isFormValid = () => {
-    return isNameValid && isEmailValid && isSubjectValid && isMessageValid && isFormEnabled
+  const onChange = (field: FieldName) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setValues((previous) => ({ ...previous, [field]: event.target.value }))
+    setIsTouched(true)
   }
 
   const onFormSubmit = async () => {
+    const { name, email, subject, message } = values
     setIsLoading(true)
 
-    const data = {
-      source: sender_mail,
-      to: contact_mail,
-      subject: `New message from ${name} - ${email} - ${new Date().toLocaleString()} by manuelenolli.ch`,
-      message: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\nMessage: ${message}`,
-    }
-
-    const response = await fetch('/mail', {
+    const response = await fetch(config.api.mail, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: config.mail.from,
+        to: config.mail.to,
+        subject: `New message from ${name} - ${email} - ${new Date().toLocaleString()} by manuelenolli.ch`,
+        message: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\nMessage: ${message}`,
+      }),
+    }).catch(() => null)
 
     setIsLoading(false)
 
-    if (response.ok) {
+    if (response?.ok) {
       toast.current?.show({ severity: 'success', summary: 'Success', detail: 'Message Sent' })
-      setName('')
-      setEmail('')
-      setSubject('')
-      setMessage('')
+      setValues(emptyValues)
     } else {
       toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error during sending message, please try again' })
     }
   }
 
-  return {
-    toast,
-    name,
-    updateName,
-    email,
-    updateEmail,
-    subject,
-    updateSubject,
-    message,
-    updateMessage,
-    isNameValidAndButtonEnabled,
-    isEmailValidAndButtonEnabled,
-    isSubjectValidAndButtonEnabled,
-    isMessageValidAndButtonEnabled,
-    isFormValid,
-    onFormSubmit,
-    isLoading,
-  }
+  return { toast, values, onChange, showInvalid, isFormValid, onFormSubmit, isLoading }
 }

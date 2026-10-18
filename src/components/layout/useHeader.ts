@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { MOBILE_MAX_WIDTH } from '@/config'
 
 export type MenuLabel = {
   label: string
@@ -9,14 +10,13 @@ export type MenuLabel = {
 
 export default function useHeader() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const isHomePage = pathname === '/'
 
   const [menuList, setMenuList] = useState<MenuLabel[]>([])
-  const [prevoiusScrollPosition, setPrevoiusScrollPosition] = useState(0)
+  const [previousScrollPosition, setPreviousScrollPosition] = useState(0)
   const [headerDiv, setHeaderDiv] = useState<HTMLElement | null>()
-  const [isMobile, setIsMobile] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const [isHomePage, setIsHomePage] = useState(true)
-  const [nextBackPage, setNextBackPage] = useState<string | null>(null)
 
   useEffect(() => {
     // helper to find header items
@@ -82,7 +82,8 @@ export default function useHeader() {
     return () => {
       window.removeEventListener('scroll', updateCurrentMenu)
     }
-  }, [])
+    // the sections are collected from the DOM, so they must be collected again on every page
+  }, [pathname])
 
   useEffect(() => {
     // handle header position
@@ -92,14 +93,14 @@ export default function useHeader() {
       const currentScrollPosition = window.scrollY
       const headerBottom = headerDiv.getBoundingClientRect().bottom
 
-      if (prevoiusScrollPosition > currentScrollPosition || currentScrollPosition < headerBottom) {
+      if (previousScrollPosition > currentScrollPosition || currentScrollPosition < headerBottom) {
         headerDiv.style.top = '0'
       } else {
         const headerHeight = headerDiv.clientHeight || 0
         headerDiv.style.top = `-${headerHeight}px`
       }
 
-      setPrevoiusScrollPosition(currentScrollPosition)
+      setPreviousScrollPosition(currentScrollPosition)
     }
 
     // set header div
@@ -112,16 +113,12 @@ export default function useHeader() {
     return () => {
       window.removeEventListener('scroll', handleScrollHeaderPosition)
     }
-  }, [headerDiv, isMobileOpen, prevoiusScrollPosition])
+  }, [headerDiv, isMobileOpen, previousScrollPosition])
 
   useEffect(() => {
+    // the mobile menu cannot stay open on a desktop viewport
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
-        setIsMobile(true)
-      } else {
-        setIsMobile(false)
-        setIsMobileOpen(false)
-      }
+      if (window.innerWidth > MOBILE_MAX_WIDTH) setIsMobileOpen(false)
     }
 
     handleResize()
@@ -131,37 +128,15 @@ export default function useHeader() {
     }
   }, [])
 
-  useEffect(() => {
-    const isHomePage = () => {
-      if (pathname !== '/') {
-        setIsHomePage(false)
-      }
-    }
-
-    const computeNextBackPage = () => {
-      if (pathname === '/') {
-        setNextBackPage(null)
-      } else {
-        // Check if last char is '/'
-        const fixedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
-        const splittedPathname = fixedPath.split('/')
-        setNextBackPage(splittedPathname[splittedPathname.length - 2])
-      }
-    }
-
-    isHomePage()
-    computeNextBackPage()
-  }, [pathname])
-
+  // one level up: /hobbies/mixology -> /hobbies -> /
   const goBack = () => {
-    window.location.href = `/${nextBackPage}`
+    navigate(pathname.replace(/\/$/, '').split('/').slice(0, -1).join('/') || '/')
   }
 
   return {
     menuList,
     isMobileOpen,
     setIsMobileOpen,
-    isMobile,
     isHomePage,
     goBack,
   }

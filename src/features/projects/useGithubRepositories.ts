@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { config } from '@/config'
 
 export type Repository = {
@@ -6,94 +6,66 @@ export type Repository = {
   url: string
   description: string
   owned: boolean // If I own the repository
-  isFork: string
+  isFork: boolean
   updatedAt: Date
   ownerName: string
   ownerUrl: string
 }
 
-export default function useGithubRepositories() {
-  const projects_repositories_length = config.githubPageSize
+type RepositoriesPage = { repos: Repository[]; afterCursor: string | null }
 
+async function fetchRepositoriesPage(afterCursor: string | null): Promise<RepositoriesPage> {
+  const params = new URLSearchParams({ projectRepositoriesLength: String(config.githubPageSize) })
+  if (afterCursor) params.set('afterCursor', afterCursor)
+
+  const response = await fetch(`${config.api.github}?${params}`, { headers: { 'Content-Type': 'application/json' } })
+  if (!response.ok) {
+    throw new Error('Error fetching repositories')
+  }
+
+  const page = (await response.json()) as RepositoriesPage
+  return { ...page, repos: page.repos.map((repo) => ({ ...repo, updatedAt: new Date(repo.updatedAt) })) }
+}
+
+export default function useGithubRepositories() {
   const [repos, setRepos] = useState<Repository[]>([])
   const [nextFetchCursor, setNextFetchCursor] = useState<string | null>(null)
-  const [loadingStart, setLoadingStart] = useState<boolean>(true)
-  const [loadingNext, setLoadingNext] = useState<boolean>(false)
-  const [error, setError] = useState<null | Error>()
+  const [loadingStart, setLoadingStart] = useState(true)
+  const [loadingNext, setLoadingNext] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
 
-  const reset = () => {
-    setRepos([])
-    setNextFetchCursor(null)
-    setLoadingStart(true)
-    setLoadingNext(false)
-    setError(null)
-
-    fetchGithubRepositories()
-      .then(() => {
-        setLoadingStart(false)
-      })
-      .catch((e: Error) => {
-        setError(e)
-      })
-  }
-
-  const fetchGithubRepositories = async () => {
-    const url = nextFetchCursor
-      ? `/github?afterCursor=${nextFetchCursor}&projectRepositoriesLength=${projects_repositories_length}`
-      : `/github?projectRepositoriesLength=${projects_repositories_length}`
-
-    const repositoriesResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!repositoriesResponse.ok) {
-      throw new Error('Error fetching repositories')
+  // appends the page after `cursor` (null = first page)
+  const loadPage = useCallback(async (cursor: string | null) => {
+    try {
+      const page = await fetchRepositoriesPage(cursor)
+      setRepos((previous) => (cursor ? [...previous, ...page.repos] : page.repos))
+      setNextFetchCursor(page.afterCursor)
+    } catch (e) {
+      setError(e as Error)
     }
+  }, [])
 
-    const repositoriesResponseJson = (await repositoriesResponse.json()) as { repos: Repository[]; afterCursor: string | null }
-
-    // Fix date
-    repositoriesResponseJson.repos.forEach((repo) => {
-      repo.updatedAt = new Date(repo.updatedAt)
-    })
-
-    setRepos((repos) => [...repos, ...repositoriesResponseJson.repos])
-    setNextFetchCursor(repositoriesResponseJson.afterCursor)
-  }
+  const loadFirstPage = useCallback(async () => {
+    setLoadingStart(true)
+    await loadPage(null)
+    setLoadingStart(false)
+  }, [loadPage])
 
   const fetchNextRepositories = async () => {
     setLoadingNext(true)
-    fetchGithubRepositories()
-      .then(() => {
-        setLoadingNext(false)
-      })
-      .catch((e: Error) => {
-        console.log('Error fetchNextRepositories', e)
-        setError(e)
-      })
+    await loadPage(nextFetchCursor)
+    setLoadingNext(false)
+  }
+
+  const reset = () => {
+    setError(null)
+    setNextFetchCursor(null)
+    loadFirstPage()
   }
 
   useEffect(() => {
-    fetchGithubRepositories()
-      .then(() => {
-        setLoadingStart(false)
-      })
-      .catch((e: Error) => {
-        console.log('Error useEffect', e)
-        setError(e)
-      })
-  }, [])
+    loadFirstPage()
+  }, [loadFirstPage])
 
-  return {
-    repos,
-    loadingStart,
-    loadingNext,
-    nextFetchCursor,
-    fetchNextRepositories,
-    error,
-    reset,
-  }
+  return { repos, loadingStart, loadingNext, nextFetchCursor, fetchNextRepositories, error, reset }
 }

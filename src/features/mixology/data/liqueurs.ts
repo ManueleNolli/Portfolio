@@ -9,19 +9,19 @@ type LiqueurIngredient = {
   imagePath: string
 }
 
-type LiqueurProperty = {
+export type LiqueurProperty = {
   partToBeMacerated: string
   afterMacerationPercentage: number
   minIngredientPer100ml: number
   maxIngredientPer100ml: number
   ingredientWaterPercentage: number
+  // shortest first: each option maps, in order, to a Flavour from fresh to rich
   macerationTime: string[]
   colors: {
     light: string
     medium: string
     strong: string
   }
-  computeFlavour: (macerationTime: string) => Flavour
 }
 
 type LiqueurPreset = {
@@ -36,6 +36,9 @@ export type Liqueur = {
   property: LiqueurProperty
   preset: LiqueurPreset
 }
+
+// basil and mint macerate to the same shades of green
+const herbColors = { light: '#A8D5BA', medium: '#6B8E23', strong: '#556B2F' }
 
 export const liqueurs: Liqueur[] = [
   {
@@ -54,18 +57,6 @@ export const liqueurs: Liqueur[] = [
         light: '#FFF9C4',
         medium: '#FFEB3B',
         strong: '#FBC02D',
-      },
-      computeFlavour: (macerationTime: string) => {
-        switch (macerationTime) {
-          case '1 day':
-            return Flavour.FRESH_AND_DELICATE
-          case '2 days':
-            return Flavour.BALANCED
-          case '3 days':
-            return Flavour.RICH_AND_FULL
-          default:
-            return Flavour.FRESH_AND_DELICATE
-        }
       },
     },
     preset: {
@@ -87,23 +78,7 @@ export const liqueurs: Liqueur[] = [
       maxIngredientPer100ml: 15,
       ingredientWaterPercentage: 70,
       macerationTime: ['12 hours', '24 hours', '36 hours'],
-      colors: {
-        light: '#A8D5BA',
-        medium: '#6B8E23',
-        strong: '#556B2F',
-      },
-      computeFlavour: (macerationTime: string) => {
-        switch (macerationTime) {
-          case '12 hours':
-            return Flavour.FRESH_AND_DELICATE
-          case '24 hours':
-            return Flavour.BALANCED
-          case '36 hours':
-            return Flavour.RICH_AND_FULL
-          default:
-            return Flavour.FRESH_AND_DELICATE
-        }
-      },
+      colors: herbColors,
     },
     preset: {
       alcohol: 150,
@@ -124,23 +99,7 @@ export const liqueurs: Liqueur[] = [
       maxIngredientPer100ml: 20,
       ingredientWaterPercentage: 70,
       macerationTime: ['12 hours', '24 hours', '36 hours'],
-      colors: {
-        light: '#A8D5BA',
-        medium: '#6B8E23',
-        strong: '#556B2F',
-      },
-      computeFlavour: (macerationTime: string) => {
-        switch (macerationTime) {
-          case '12 hours':
-            return Flavour.FRESH_AND_DELICATE
-          case '24 hours':
-            return Flavour.BALANCED
-          case '36 hours':
-            return Flavour.RICH_AND_FULL
-          default:
-            return Flavour.FRESH_AND_DELICATE
-        }
-      },
+      colors: herbColors,
     },
     preset: {
       alcohol: 150,
@@ -165,18 +124,6 @@ export const liqueurs: Liqueur[] = [
         light: '#faeed9',
         medium: '#FFE5B4',
         strong: '#d2c186',
-      },
-      computeFlavour: (macerationTime: string) => {
-        switch (macerationTime) {
-          case '3 days':
-            return Flavour.FRESH_AND_DELICATE
-          case '1 week':
-            return Flavour.BALANCED
-          case '2 weeks':
-            return Flavour.RICH_AND_FULL
-          default:
-            return Flavour.FRESH_AND_DELICATE
-        }
       },
     },
     preset: {

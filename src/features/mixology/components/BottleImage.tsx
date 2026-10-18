@@ -54,10 +54,14 @@ export default function BottleImage({ max, value, ingredientColor, sugarContentP
   const [height, setHeight] = useState(0)
   const refWave = useRef<HTMLDivElement | null>(null)
 
+  // the wave height is in px, so it follows the container size
   useEffect(() => {
-    if (!refWave.current) return
-    setHeight(refWave.current.clientHeight)
-  })
+    const element = refWave.current
+    if (!element) return
+    const observer = new ResizeObserver(() => setHeight(element.clientHeight))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
 
   const finalColor = useMemo(() => {
     return computeFinalColor(ingredientColor, sugarContentPercentage * max, max, macerationPercentage)
