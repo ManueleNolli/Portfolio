@@ -1,20 +1,32 @@
 # Portfolio
 
-My personal website, visitable at [https://www.manuelenolli.ch](https://www.manuelenolli.ch) 🚀
+My personal website, live at [https://www.manuelenolli.ch](https://www.manuelenolli.ch) 🚀
 
-This is a full rewrite of the former [PersonalWebsite](https://github.com/ManueleNolli/PersonalWebsite) (now deprecated): same content and structure, but rebuilt as a plain static single-page app instead of a server-rendered Next.js app on Lambda. The base framework is [Vite](https://vitejs.dev/) + React written in TypeScript, additional libraries are:
+It replaces the former [PersonalWebsite](https://github.com/ManueleNolli/PersonalWebsite) (Next.js rendered on Lambda, now deprecated) with a static single-page app: same content, rebuilt with a feature-based structure and no server-side rendering.
+
+## Features
+
+- **Home** (`/`): hero, about me, journey timeline, certifications, GitHub repositories, contact form
+- **Hobbies** (`/hobbies`): hobbies overview
+- **Mixology** (`/hobbies/mixology`): liqueurs calculator
+
+## Tech Stack
+
+[Vite](https://vitejs.dev/) + [React](https://react.dev/) written in TypeScript, with:
 
 - [React Router](https://reactrouter.com/): client-side routing
 - [PrimeReact](https://primereact.org/): UI components
-- [Tailwind CSS](https://tailwindcss.com/): CSS framework for styling
-- [tsparticles](https://particles.js.org/): Particles animation
-- [gsap](https://gsap.com/): Animation library
-- [AOS](https://michalsnik.github.io/aos/): Animate on scroll library
+- [Tailwind CSS](https://tailwindcss.com/): styling
+- [tsparticles](https://particles.js.org/): particles animation
+- [gsap](https://gsap.com/) and [Framer Motion](https://motion.dev/): animations
+- [AOS](https://michalsnik.github.io/aos/): animate on scroll
+- [KaTeX](https://katex.org/): math formulas in the mixology calculator
 - [react-error-boundary](https://github.com/bvaughn/react-error-boundary): client-side error boundary
+- [Vitest](https://vitest.dev/), [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/): tests, linting and formatting
 
 ## Requirements
 
-- node: 20.16.0
+- node: 22.x
 - yarn: 1.22.22
 
 ## Installation and Usage
@@ -34,13 +46,17 @@ yarn dev
 | `yarn format` / `yarn format:check` | Prettier                     |
 | `yarn test` / `yarn test:watch`     | Vitest unit tests            |
 
+The contact form (`/mail`) and the GitHub repositories (`/github`) call backend APIs that only exist behind CloudFront, so these two sections show an error when running locally.
+
+App settings (API paths, mail addresses, page sizes) are in `src/config.ts`; the personal content (profile, journey, certifications, links) is in `src/data/profile.ts`.
+
 ## Folder Structure
 
 ```bash
 src/
     main.tsx # Provider stack (PrimeReact, Particles, AOS) and router
     config.ts # App settings (API paths, mail addresses, page sizes, breakpoint)
-    app/ # Routes, Layout route (header, error boundary, scroll reset), AOS provider
+    app/ # Routes, Layout route (header, error boundary, scroll handling), AOS provider
     components/ # Generic building blocks, unaware of the site content
         ui/ # Section, Divider, Dialog, Slider, InputNumber, RadioGroup, ...
         animation/ # AnimatedText, RotatingText, AnimatedOnScroll
@@ -57,37 +73,43 @@ src/
     lib/ # Framework-free helpers shared across features
     pages/ # Route components, composing feature sections
     styles/ # Global CSS
-public/ # static assets
-    assets/ # images, icons, etc.
+public/ # Static files copied as-is into dist/
+    assets/ # Images, icons, etc.
+    robots.txt
+    sitemap.xml
 ```
 
 Imports use the `@/` alias for `src/`. Tests live next to the code they cover (`*.test.ts`).
 
 ## Deployment
 
-The website is built as a static bundle (`vite build`) and hosted on AWS using the following services:
+The site is a static bundle hosted on AWS:
 
-- [Amazon S3](https://aws.amazon.com/s3/): static website hosting — this is the **only** content origin, no server/Lambda renders pages anymore
-- [Amazon CloudFront](https://aws.amazon.com/cloudfront/): content delivery network, with an SPA fallback (403/404 → `/index.html`) so client-side routes work on direct navigation
-- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) + [AWS Lambda](https://aws.amazon.com/lambda/): the `/mail` and `/github` paths are routed (via dedicated CloudFront behaviors) to two independent backend Lambdas, not to this app
-- [Amazon Route 53](https://aws.amazon.com/route53/): domain name management
-- [Amazon Certificate Manager](https://aws.amazon.com/certificate-manager/): SSL certificates
-- [Amazon WAF](https://aws.amazon.com/waf/): web application firewall
-- [Amazon Simple Email Service](https://aws.amazon.com/ses/): powers the "contact me" form via the mail Lambda
+- [Amazon S3](https://aws.amazon.com/s3/): stores the built `dist/`
+- [Amazon CloudFront](https://aws.amazon.com/cloudfront/): CDN serving the bucket, with an SPA fallback (403/404 → `/index.html`) so client-side routes work on direct navigation or refresh
+- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) + [AWS Lambda](https://aws.amazon.com/lambda/): CloudFront forwards `/mail` and `/github` to two backend Lambdas
+- [Amazon SES](https://aws.amazon.com/ses/): sends the contact form emails
+- [Amazon Route 53](https://aws.amazon.com/route53/) and [AWS Certificate Manager](https://aws.amazon.com/certificate-manager/): domain and HTTPS certificate
 
-The full infrastructure (S3 bucket, CloudFront, API Gateway, and the two backend Lambda wirings) is defined as CDK code in [PortfolioInfrastructure](../PortfolioInfrastructure).
+The infrastructure is defined as CDK code in [PortfolioInfrastructure](https://github.com/ManueleNolli/PortfolioInfrastructure). The backends live in their own repositories:
 
-The "contact me" form posts to `/mail`, handled by [AwsLambdaSimpleEmailService](https://github.com/ManueleNolli/AwsLambdaSimpleEmailService) (unchanged, reused as-is).
-
-The GitHub repositories section fetches from `/github`, handled by [AwsLambdaGithubRepositoriesService](https://github.com/ManueleNolli/AwsLambdaGithubRepositoriesService) (unchanged, reused as-is).
+- [AwsLambdaSimpleEmailService](https://github.com/ManueleNolli/AwsLambdaSimpleEmailService): `POST /mail`, used by the contact form
+- [AwsLambdaGithubRepositoriesService](https://github.com/ManueleNolli/AwsLambdaGithubRepositoriesService): `GET /github`, used by the GitHub repositories section
 
 ## CI/CD
 
-The CI/CD pipeline is implemented using GitHub Actions, the workflow is defined in [actions.yml](./.github/workflows/actions.yml).
+The GitHub Actions workflow is defined in [actions.yml](./.github/workflows/actions.yml):
 
-Steps:
+1. **Build** (every push and pull request to `main`): ESLint with no warnings allowed, Prettier check, unit tests, `yarn build`.
+2. **Deploy** (pushes to `main` only): sync `dist/` to the S3 bucket, then invalidate the CloudFront cache.
 
-1. **Build**: lint (no warnings allowed), Prettier check, unit tests, then `yarn build` → static `dist/`.
-2. **Deploy** (`main` only): sync `dist/` to the S3 assets bucket, then invalidate the CloudFront cache.
+The deploy job authenticates to AWS with [GitHub OIDC](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services): it assumes an IAM role with a short-lived token, so no AWS access keys are stored in GitHub. The role trusts only the `main` branch of this repository.
 
-No Lambda zipping/layer steps — there's no server to deploy for this app anymore.
+Repository variables (Settings → Secrets and variables → Actions → Variables):
+
+| Variable                     | Description                              |
+| ---------------------------- | ---------------------------------------- |
+| `AWS_ROLE_ARN`               | ARN of the IAM role assumed through OIDC |
+| `AWS_REGION`                 | AWS region of the stack (`eu-south-1`)   |
+| `AWS_S3_BUCKET_ASSETS_NAME`  | S3 bucket the site is uploaded to        |
+| `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution to invalidate    |
