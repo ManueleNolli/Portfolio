@@ -26,7 +26,7 @@ It replaces the former [PersonalWebsite](https://github.com/ManueleNolli/Persona
 
 ## Requirements
 
-- node: 22.x
+- node: 24.x
 - yarn: 1.22.22
 
 ## Installation and Usage
