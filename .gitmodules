@@ -1,0 +1,12 @@
+[submodule "aws/infrastructure"]
+	path = aws/infrastructure
+	url = https://github.com/ManueleNolli/PortfolioInfrastructure.git
+	branch = main
+[submodule "aws/mail-service"]
+	path = aws/mail-service
+	url = https://github.com/ManueleNolli/AwsLambdaSimpleEmailService.git
+	branch = main
+[submodule "aws/github-service"]
+	path = aws/github-service
+	url = https://github.com/ManueleNolli/AwsLambdaGithubRepositoriesService.git
+	branch = main

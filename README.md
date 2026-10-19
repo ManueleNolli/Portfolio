@@ -95,6 +95,8 @@ The infrastructure is defined as CDK code in [PortfolioInfrastructure](https://g
 - [AwsLambdaSimpleEmailService](https://github.com/ManueleNolli/AwsLambdaSimpleEmailService): `POST /mail`, used by the contact form
 - [AwsLambdaGithubRepositoriesService](https://github.com/ManueleNolli/AwsLambdaGithubRepositoriesService): `GET /github`, used by the GitHub repositories section
 
+The three repositories are included as git submodules in `aws/` (`infrastructure`, `mail-service`, `github-service`). Clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone. To move them to the latest `main` of each repository, run `git submodule update --remote` and commit the result.
+
 ## CI/CD
 
 The GitHub Actions workflow is defined in [actions.yml](./.github/workflows/actions.yml):
