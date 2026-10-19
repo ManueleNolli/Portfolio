@@ -26,25 +26,24 @@ It replaces the former [PersonalWebsite](https://github.com/ManueleNolli/Persona
 
 ## Requirements
 
-- node: 24.x
-- yarn: 1.22.22
+- node: 24.x (npm is included)
 
 ## Installation and Usage
 
 ```bash
-yarn install
-yarn dev
+npm install
+npm run dev
 ```
 
-| Script                              | Purpose                      |
-| ----------------------------------- | ---------------------------- |
-| `yarn dev`                          | Vite dev server              |
-| `yarn build`                        | Type check and build `dist/` |
-| `yarn preview`                      | Serve the built `dist/`      |
-| `yarn typecheck`                    | TypeScript only              |
-| `yarn lint`                         | ESLint                       |
-| `yarn format` / `yarn format:check` | Prettier                     |
-| `yarn test` / `yarn test:watch`     | Vitest unit tests            |
+| Script                                    | Purpose                      |
+| ----------------------------------------- | ---------------------------- |
+| `npm run dev`                             | Vite dev server              |
+| `npm run build`                           | Type check and build `dist/` |
+| `npm run preview`                         | Serve the built `dist/`      |
+| `npm run typecheck`                       | TypeScript only              |
+| `npm run lint`                            | ESLint                       |
+| `npm run format` / `npm run format:check` | Prettier                     |
+| `npm test` / `npm run test:watch`         | Vitest unit tests            |
 
 The contact form (`/mail`) and the GitHub repositories (`/github`) call backend APIs that only exist behind CloudFront, so these two sections show an error when running locally.
 
@@ -100,7 +99,7 @@ The infrastructure is defined as CDK code in [PortfolioInfrastructure](https://g
 
 The GitHub Actions workflow is defined in [actions.yml](./.github/workflows/actions.yml):
 
-1. **Build** (every push and pull request to `main`): ESLint with no warnings allowed, Prettier check, unit tests, `yarn build`.
+1. **Build** (every push and pull request to `main`): ESLint with no warnings allowed, Prettier check, unit tests, `npm run build`.
 2. **Deploy** (pushes to `main` only): sync `dist/` to the S3 bucket, then invalidate the CloudFront cache.
 
 The deploy job authenticates to AWS with [GitHub OIDC](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services): it assumes an IAM role with a short-lived token, so no AWS access keys are stored in GitHub. The role trusts only the `main` branch of this repository.
