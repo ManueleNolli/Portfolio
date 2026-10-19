@@ -52,6 +52,7 @@ export default function useContactForm() {
     if (response?.ok) {
       toast.current?.show({ severity: 'success', summary: 'Success', detail: 'Message Sent' })
       setValues(emptyValues)
+      setIsTouched(false)
     } else {
       toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error during sending message, please try again' })
     }
