@@ -8,7 +8,7 @@ export const config = {
   githubPageSize: 4,
   mail: {
     from: 'info@manuelenolli.ch',
-    to: 'manuele.nolli.01@gmail.com',
+    to: 'me@manuelenolli.ch',
   },
   api: {
     mail: '/mail',
